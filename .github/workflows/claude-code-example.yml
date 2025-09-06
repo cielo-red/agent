@@ -1,0 +1,104 @@
+name: Cielo Red Example
+
+on:
+  # Trigger on issue comments
+  issue_comment:
+    types: [created]
+  
+  # Trigger on pull request comments
+  pull_request_review_comment:
+    types: [created]
+  
+  # Trigger on new issues
+  issues:
+    types: [opened, assigned]
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Task for Cielo Red to perform'
+        required: true
+        type: string
+
+jobs:
+  cielo-red:
+    runs-on: ubuntu-latest
+    # Only run if comment contains @cielo or issue is assigned to cielo-red[bot]
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@cielo')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@cielo')) ||
+      (github.event_name == 'issues' && github.event.assignee.login == 'cielo-red[bot]') ||
+      github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run Cielo Red
+        uses: cielo-red/agent@v1
+        with:
+          # Authentication
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # Prompt configuration
+          prompt: |
+            ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.prompt || 
+               github.event_name == 'issue_comment' && github.event.comment.body ||
+               github.event_name == 'pull_request_review_comment' && github.event.comment.body ||
+               github.event_name == 'issues' && github.event.issue.body || 
+               'Review and provide feedback' }}
+          
+          # Model configuration
+          model: claude-3-5-sonnet-20241022
+          temperature: 0
+          max_tokens: 8192
+          
+          # Behavior
+          auto_approve: false
+          create_pr: true
+          base_branch: main
+      
+      - name: Comment on Issue/PR
+        if: success() && (github.event_name == 'issue_comment' || github.event_name == 'issues')
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = context.issue.number;
+            const prUrl = '${{ steps.cielo-red.outputs.pr_url }}';
+            const filesChanged = '${{ steps.cielo-red.outputs.files_changed }}';
+            
+            let comment = '✅ Cielo Red has completed the task.\n\n';
+            
+            if (prUrl) {
+              comment += `📝 Pull Request: ${prUrl}\n`;
+            }
+            
+            if (filesChanged) {
+              comment += `📄 Files modified: ${filesChanged}\n`;
+            }
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: comment
+            });
+
+# Example usage scenarios:
+
+# 1. Issue Comment Trigger:
+#    Comment "@cielo please fix the typos in README.md"
+
+# 2. Issue Assignment:
+#    Assign an issue to cielo-red[bot] user
+
+# 3. Manual Workflow Dispatch:
+#    Go to Actions tab → Select workflow → Run workflow → Enter prompt
+
+# 4. Pull Request Review:
+#    Comment "@cielo review this code for security issues"

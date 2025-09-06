@@ -1,0 +1,186 @@
+name: 'Cielo Red'
+description: 'Flexible GitHub automation platform powered by AI. Auto-detects mode based on event type.'
+author: 'cielo-red'
+branding:
+  icon: 'at-sign'
+  color: 'orange'
+
+inputs:
+  # Trigger configuration
+  trigger_phrase:
+    description: 'The trigger phrase to look for in comments or issue body'
+    required: false
+    default: '@cielo'
+  assignee_trigger:
+    description: 'Whether to trigger when an issue is assigned to Cielo Red (cielo-red[bot])'
+    required: false
+    default: 'true'
+  label_trigger:
+    description: 'Whether to trigger when specific label is added'
+    required: false
+    default: 'false'
+  label_name:
+    description: 'Name of the label to trigger on'
+    required: false
+    default: 'cielo-red'
+  
+  # Core functionality
+  prompt:
+    description: 'Instructions for Cielo Red. Can be a direct prompt or custom template.'
+    required: false
+    default: ''
+  cielo_args:
+    description: 'Additional arguments to pass to Cielo Red CLI'
+    required: false
+    default: ''
+  model:
+    description: 'AI model to use'
+    required: false
+    default: 'claude-3-5-sonnet-20241022'
+  temperature:
+    description: 'Temperature for response generation (0-1)'
+    required: false
+    default: '0'
+  max_tokens:
+    description: 'Maximum tokens for response'
+    required: false
+    default: '8192'
+  
+  # Authentication
+  github_token:
+    description: 'GitHub token with repo and pull request permissions'
+    required: false
+  anthropic_api_key:
+    description: 'Anthropic API key (required for direct API)'
+    required: false
+  
+  # Behavior configuration
+  auto_approve:
+    description: 'Automatically approve all Cielo Red actions'
+    required: false
+    default: 'false'
+  create_pr:
+    description: 'Whether to create a pull request with changes'
+    required: false
+    default: 'true'
+  base_branch:
+    description: 'Base branch for pull requests'
+    required: false
+    default: 'main'
+  
+  # Advanced options
+  working_directory:
+    description: 'Working directory for Cielo Red'
+    required: false
+    default: '.'
+  skip_confirmation:
+    description: 'Skip confirmation prompts'
+    required: false
+    default: 'false'
+  max_retries:
+    description: 'Maximum number of retries for failed operations'
+    required: false
+    default: '3'
+
+outputs:
+  execution_file:
+    description: 'Path to the Cielo Red execution output file'
+    value: ${{ steps.cielo-red.outputs.execution_file }}
+  branch_name:
+    description: 'The branch created by Cielo Red for this execution'
+    value: ${{ steps.prepare.outputs.branch_name }}
+  pr_url:
+    description: 'URL of the created pull request (if applicable)'
+    value: ${{ steps.cielo-red.outputs.pr_url }}
+  files_changed:
+    description: 'List of files modified by Cielo Red'
+    value: ${{ steps.cielo-red.outputs.files_changed }}
+  status:
+    description: 'Execution status (success/failure)'
+    value: ${{ steps.cielo-red.outputs.status }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Cielo Red Environment
+      shell: bash
+      run: |
+        echo "Setting up Cielo Red environment..."
+        echo "ANTHROPIC_API_KEY=${{ inputs.anthropic_api_key }}" >> $GITHUB_ENV
+        echo "GITHUB_TOKEN=${{ inputs.github_token || github.token }}" >> $GITHUB_ENV
+        echo "CIELO_MODEL=${{ inputs.model }}" >> $GITHUB_ENV
+        echo "CIELO_TEMPERATURE=${{ inputs.temperature }}" >> $GITHUB_ENV
+        echo "CIELO_MAX_TOKENS=${{ inputs.max_tokens }}" >> $GITHUB_ENV
+    
+    - name: Prepare Action Context
+      id: prepare
+      shell: bash
+      run: |
+        # Determine execution mode based on event
+        if [[ "${{ github.event_name }}" == "issue_comment" || "${{ github.event_name }}" == "pull_request_review_comment" ]]; then
+          echo "mode=comment" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.event_name }}" == "issues" ]]; then
+          echo "mode=issue" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "mode=pr" >> $GITHUB_OUTPUT
+        else
+          echo "mode=direct" >> $GITHUB_OUTPUT
+        fi
+        
+        # Generate branch name
+        BRANCH_NAME="cielo-red-$(date +%Y%m%d-%H%M%S)"
+        echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+    
+    - name: Run Cielo Red
+      id: cielo-red
+      shell: bash
+      run: |
+        cd ${{ inputs.working_directory }}
+        
+        # Build command
+        CIELO_CMD="npx @anthropic/claude-cli"
+        
+        if [[ "${{ inputs.auto_approve }}" == "true" || "${{ inputs.skip_confirmation }}" == "true" ]]; then
+          CIELO_CMD="${CIELO_CMD} --yes"
+        fi
+        
+        if [[ -n "${{ inputs.cielo_args }}" ]]; then
+          CIELO_CMD="${CIELO_CMD} ${{ inputs.cielo_args }}"
+        fi
+        
+        # Execute with prompt
+        EXECUTION_FILE="${RUNNER_TEMP}/cielo-execution-$(date +%s).log"
+        
+        if ${CIELO_CMD} "${{ inputs.prompt }}" > "${EXECUTION_FILE}" 2>&1; then
+          echo "status=success" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "execution_file=${EXECUTION_FILE}" >> $GITHUB_OUTPUT
+        
+        # Track changed files
+        git diff --name-only > /tmp/changed_files.txt
+        CHANGED_FILES=$(cat /tmp/changed_files.txt | tr '\n' ',' | sed 's/,$//')
+        echo "files_changed=${CHANGED_FILES}" >> $GITHUB_OUTPUT
+    
+    - name: Create Pull Request
+      if: inputs.create_pr == 'true' && steps.cielo-red.outputs.files_changed != ''
+      id: create-pr
+      shell: bash
+      run: |
+        git config --global user.name "Cielo Red Bot"
+        git config --global user.email "cielo-red[bot]@users.noreply.github.com"
+        
+        git checkout -b ${{ steps.prepare.outputs.branch_name }}
+        git add -A
+        git commit -m "Cielo Red: ${{ inputs.prompt }}"
+        git push origin ${{ steps.prepare.outputs.branch_name }}
+        
+        PR_URL=$(gh pr create \
+          --title "Cielo Red: Automated changes" \
+          --body "Changes made by Cielo Red based on: ${{ inputs.prompt }}" \
+          --base ${{ inputs.base_branch }} \
+          --head ${{ steps.prepare.outputs.branch_name }})
+        
+        echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
