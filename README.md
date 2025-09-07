@@ -7,7 +7,7 @@ A GitHub Action that integrates AI assistant into your GitHub workflows for auto
 ```yaml
 - uses: cielo-red/agent@v1
   with:
-    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    claude_creds: ${{ secrets.CLAUDE_CREDS }}  # or anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
     prompt: 'Your task for Cielo Red'
 ```
 
@@ -26,9 +26,12 @@ A GitHub Action that integrates AI assistant into your GitHub workflows for auto
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `anthropic_api_key` | Anthropic API key | Yes | - |
+| `anthropic_api_key` | Anthropic API key | No* | - |
+| `claude_creds` | Claude CLI credentials JSON | No* | - |
 | `prompt` | Instructions for Cielo Red | No | - |
 | `github_token` | GitHub token with repo permissions | No | `${{ github.token }}` |
+
+*Either `anthropic_api_key` OR `claude_creds` is required for authentication.
 
 ### Configuration
 
@@ -134,7 +137,35 @@ jobs:
 
 ## Setup
 
-1. **Add API Key**: Add your Anthropic API key as a repository secret named `ANTHROPIC_API_KEY`
+### Authentication
+
+Choose one of the following authentication methods:
+
+#### Method 1: Anthropic API Key
+Add your Anthropic API key as a repository secret named `ANTHROPIC_API_KEY`:
+
+```yaml
+- uses: cielo-red/agent@v1
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    prompt: 'Your task'
+```
+
+#### Method 2: Claude CLI Credentials (Recommended)
+Add your Claude CLI credentials JSON as a repository secret named `CLAUDE_CREDS`:
+
+```yaml
+- uses: cielo-red/agent@v1
+  with:
+    claude_creds: ${{ secrets.CLAUDE_CREDS }}
+    prompt: 'Your task'
+```
+
+The `claude_creds` should contain the entire contents of your `~/.claude/.credentials.json` file.
+
+### Workflow Setup
+
+1. **Add Credentials**: Choose one of the authentication methods above
 
 2. **Create Workflow**: Add a workflow file to `.github/workflows/` using one of the examples above
 
