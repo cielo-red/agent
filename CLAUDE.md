@@ -33,3 +33,29 @@ This allows users to reference either:
 - Breaking changes: v1.1.0 → v2.0.0
 
 Always update both the semantic version tag and the major version tag.
+
+## Authentication
+
+The action supports two authentication methods:
+
+### Method 1: Anthropic API Key
+Add your Anthropic API key as a repository secret:
+```yaml
+- name: Run Cielo Red
+  uses: cielo-red/agent@v1
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+### Method 2: Claude CLI Credentials (Recommended)
+Add your Claude CLI credentials JSON as a repository secret:
+```yaml
+- name: Run Cielo Red
+  uses: cielo-red/agent@v1
+  with:
+    claude_creds: ${{ secrets.CLAUDE_CREDS }}
+```
+
+The `claude_creds` should contain the entire contents of your `~/.claude/.credentials.json` file.
+
+**Important**: Always use GitHub repository secrets for sensitive credentials. Never put API keys or credentials directly in workflow files.
