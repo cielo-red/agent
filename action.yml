@@ -53,9 +53,11 @@ inputs:
   anthropic_api_key:
     description: 'Anthropic API key (required for direct API)'
     required: false
+    secret: true
   claude_creds:
     description: 'Claude CLI credentials JSON (alternative to anthropic_api_key)'
     required: false
+    secret: true
   
   # Behavior configuration
   auto_approve:
