@@ -53,6 +53,9 @@ inputs:
   anthropic_api_key:
     description: 'Anthropic API key (required for direct API)'
     required: false
+  claude_creds:
+    description: 'Claude CLI credentials JSON (alternative to anthropic_api_key)'
+    required: false
   
   # Behavior configuration
   auto_approve:
@@ -106,7 +109,17 @@ runs:
       shell: bash
       run: |
         echo "Setting up Cielo Red environment..."
-        echo "ANTHROPIC_API_KEY=${{ inputs.anthropic_api_key }}" >> $GITHUB_ENV
+        
+        # Set up Claude CLI credentials if provided
+        if [[ -n "${{ inputs.claude_creds }}" ]]; then
+          echo "Setting up Claude CLI credentials..."
+          mkdir -p ~/.claude
+          echo '${{ inputs.claude_creds }}' > ~/.claude/.credentials.json
+          chmod 600 ~/.claude/.credentials.json
+        elif [[ -n "${{ inputs.anthropic_api_key }}" ]]; then
+          echo "ANTHROPIC_API_KEY=${{ inputs.anthropic_api_key }}" >> $GITHUB_ENV
+        fi
+        
         echo "GITHUB_TOKEN=${{ inputs.github_token || github.token }}" >> $GITHUB_ENV
         echo "CIELO_MODEL=${{ inputs.model }}" >> $GITHUB_ENV
         echo "CIELO_TEMPERATURE=${{ inputs.temperature }}" >> $GITHUB_ENV
