@@ -114,7 +114,9 @@ runs:
         if [[ -n "${{ inputs.claude_creds }}" ]]; then
           echo "Setting up Claude CLI credentials..."
           mkdir -p ~/.claude
-          echo '${{ inputs.claude_creds }}' > ~/.claude/.credentials.json
+          cat <<'EOF' > ~/.claude/.credentials.json
+        ${{ inputs.claude_creds }}
+        EOF
           chmod 600 ~/.claude/.credentials.json
         elif [[ -n "${{ inputs.anthropic_api_key }}" ]]; then
           echo "ANTHROPIC_API_KEY=${{ inputs.anthropic_api_key }}" >> $GITHUB_ENV

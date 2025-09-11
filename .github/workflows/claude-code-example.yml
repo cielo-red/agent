@@ -24,6 +24,10 @@ on:
 jobs:
   cielo-red:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     # Only run if comment contains @cielo or issue is assigned to cielo-red[bot]
     if: |
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@cielo')) ||
