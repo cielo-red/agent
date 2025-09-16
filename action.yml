@@ -152,6 +152,24 @@ runs:
       run: |
         cd ${{ inputs.working_directory }}
         
+        # Determine the prompt to use
+        PROMPT="${{ inputs.prompt }}"
+        
+        # If no prompt provided, check for comment-based triggers
+        if [[ -z "${PROMPT}" ]]; then
+          if [[ "${{ github.event_name }}" == "issue_comment" || "${{ github.event_name }}" == "pull_request_review_comment" ]]; then
+            PROMPT="${{ github.event.comment.body }}"
+            echo "Using comment body as prompt"
+          fi
+        fi
+        
+        # Skip execution if still no prompt
+        if [[ -z "${PROMPT}" ]]; then
+          echo "Error: No prompt provided. Skipping Cielo Red execution."
+          echo "status=skipped" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
         # Build command
         CIELO_CMD="npx @anthropic/claude-cli"
         
@@ -166,7 +184,7 @@ runs:
         # Execute with prompt
         EXECUTION_FILE="${RUNNER_TEMP}/cielo-execution-$(date +%s).log"
         
-        if ${CIELO_CMD} "${{ inputs.prompt }}" > "${EXECUTION_FILE}" 2>&1; then
+        if ${CIELO_CMD} "${PROMPT}" > "${EXECUTION_FILE}" 2>&1; then
           echo "status=success" >> $GITHUB_OUTPUT
         else
           echo "status=failure" >> $GITHUB_OUTPUT

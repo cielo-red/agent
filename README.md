@@ -28,10 +28,11 @@ A GitHub Action that integrates AI assistant into your GitHub workflows for auto
 |-------|-------------|----------|---------|
 | `anthropic_api_key` | Anthropic API key | No* | - |
 | `claude_credentials` | Claude CLI credentials JSON | No* | - |
-| `prompt` | Instructions for Cielo Red | No | - |
+| `prompt` | Instructions for Cielo Red | No** | - |
 | `github_token` | GitHub token with repo permissions | No | `${{ github.token }}` |
 
 *Either `anthropic_api_key` OR `claude_credentials` is required for authentication.
+**When triggered by issue/PR comments, the comment body is automatically used if no prompt is provided.
 
 ### Configuration
 
@@ -83,7 +84,7 @@ jobs:
       - uses: cielo-red/agent@v1
         with:
           claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
-          prompt: ${{ github.event.comment.body }}
+          # prompt is optional - automatically uses comment body for comment triggers
 ```
 
 ### Manual Workflow
