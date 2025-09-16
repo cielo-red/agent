@@ -7,7 +7,7 @@ A GitHub Action that integrates AI assistant into your GitHub workflows for auto
 ```yaml
 - uses: cielo-red/agent@v1
   with:
-    claude_creds: ${{ secrets.CLAUDE_CREDS }}  # or anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}  # or anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
     prompt: 'Your task for Cielo Red'
 ```
 
@@ -27,11 +27,11 @@ A GitHub Action that integrates AI assistant into your GitHub workflows for auto
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `anthropic_api_key` | Anthropic API key | No* | - |
-| `claude_creds` | Claude CLI credentials JSON | No* | - |
+| `claude_credentials` | Claude CLI credentials JSON | No* | - |
 | `prompt` | Instructions for Cielo Red | No | - |
 | `github_token` | GitHub token with repo permissions | No | `${{ github.token }}` |
 
-*Either `anthropic_api_key` OR `claude_creds` is required for authentication.
+*Either `anthropic_api_key` OR `claude_credentials` is required for authentication.
 
 ### Configuration
 
@@ -82,7 +82,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: cielo-red/agent@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
           prompt: ${{ github.event.comment.body }}
 ```
 
@@ -105,7 +105,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: cielo-red/agent@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
           prompt: ${{ github.event.inputs.task }}
           auto_approve: true
 ```
@@ -126,7 +126,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: cielo-red/agent@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
           prompt: |
             Review this pull request for:
             - Code quality issues
@@ -152,16 +152,16 @@ Add your Anthropic API key as a repository secret named `ANTHROPIC_API_KEY`:
 ```
 
 #### Method 2: Claude CLI Credentials (Recommended)
-Add your Claude CLI credentials JSON as a repository secret named `CLAUDE_CREDS`:
+Add your Claude CLI credentials JSON as a repository secret named `CLAUDE_CREDENTIALS`:
 
 ```yaml
 - uses: cielo-red/agent@v1
   with:
-    claude_creds: ${{ secrets.CLAUDE_CREDS }}
+    claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
     prompt: 'Your task'
 ```
 
-The `claude_creds` should contain the entire contents of your `~/.claude/.credentials.json` file.
+The `claude_credentials` should contain the entire contents of your `~/.claude/.credentials.json` file.
 
 ### Workflow Setup
 

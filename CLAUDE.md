@@ -53,9 +53,9 @@ Add your Claude CLI credentials JSON as a repository secret:
 - name: Run Cielo Red
   uses: cielo-red/agent@v1
   with:
-    claude_creds: ${{ secrets.CLAUDE_CREDS }}
+    claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
 ```
 
-The `claude_creds` should contain the entire contents of your `~/.claude/.credentials.json` file.
+The `claude_credentials` should contain the entire contents of your `~/.claude/.credentials.json` file.
 
 **Important**: Always use GitHub repository secrets for sensitive credentials. Never put API keys or credentials directly in workflow files.

@@ -53,7 +53,7 @@ inputs:
   anthropic_api_key:
     description: 'Anthropic API key (required for direct API)'
     required: false
-  claude_creds:
+  claude_credentials:
     description: 'Claude CLI credentials JSON (alternative to anthropic_api_key)'
     required: false
   
@@ -61,7 +61,7 @@ inputs:
   auto_approve:
     description: 'Automatically approve all Cielo Red actions'
     required: false
-    default: 'false'
+    default: 'true'
   create_pr:
     description: 'Whether to create a pull request with changes'
     required: false
@@ -111,11 +111,11 @@ runs:
         echo "Setting up Cielo Red environment..."
         
         # Set up Claude CLI credentials if provided
-        if [[ -n "${{ inputs.claude_creds }}" ]]; then
+        if [[ -n "${{ inputs.claude_credentials }}" ]]; then
           echo "Setting up Claude CLI credentials..."
           mkdir -p ~/.claude
           cat <<'EOF' > ~/.claude/.credentials.json
-        ${{ inputs.claude_creds }}
+        ${{ inputs.claude_credentials }}
         EOF
           chmod 600 ~/.claude/.credentials.json
         elif [[ -n "${{ inputs.anthropic_api_key }}" ]]; then
