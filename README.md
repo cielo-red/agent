@@ -153,7 +153,11 @@ Add your Anthropic API key as a repository secret named `ANTHROPIC_API_KEY`:
 ```
 
 #### Method 2: Claude CLI Credentials (Recommended)
-Add your Claude CLI credentials JSON as a repository secret named `CLAUDE_CREDENTIALS`:
+Add your Claude CLI credentials as a **base64-encoded** repository secret:
+
+1. Get your credentials file: `cat ~/.claude/.credentials.json | base64`
+2. Add the base64 output as a secret named `CLAUDE_CREDENTIALS`
+3. Use in your workflow:
 
 ```yaml
 - uses: cielo-red/agent@v1

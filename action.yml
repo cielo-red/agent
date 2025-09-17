@@ -54,7 +54,7 @@ inputs:
     description: 'Anthropic API key (required for direct API)'
     required: false
   claude_credentials:
-    description: 'Claude CLI credentials JSON (alternative to anthropic_api_key)'
+    description: 'Base64-encoded Claude CLI credentials JSON (alternative to anthropic_api_key). Should be the base64-encoded contents of ~/.claude/.credentials.json'
     required: false
   
   # Behavior configuration
@@ -117,12 +117,21 @@ runs:
         if [[ -n "${{ inputs.claude_credentials }}" ]]; then
           echo "Setting up Claude CLI credentials..."
           mkdir -p ~/.claude
-          cat <<'EOF' > ~/.claude/.credentials.json
-        ${{ inputs.claude_credentials }}
+          # Use base64 encoding to avoid issues with secret masking
+          echo "${{ inputs.claude_credentials }}" | base64 -d > ~/.claude/.credentials.json
+          chmod 600 ~/.claude/.credentials.json
+          echo "Claude credentials file created"
+        elif [[ -n "${{ inputs.anthropic_api_key }}" ]]; then
+          echo "Setting up Anthropic API key..."
+          # Create a minimal credentials.json from the API key
+          mkdir -p ~/.claude
+          cat > ~/.claude/.credentials.json <<EOF
+        {
+          "apiKey": "${{ inputs.anthropic_api_key }}"
+        }
         EOF
           chmod 600 ~/.claude/.credentials.json
-        elif [[ -n "${{ inputs.anthropic_api_key }}" ]]; then
-          echo "ANTHROPIC_API_KEY=${{ inputs.anthropic_api_key }}" >> $GITHUB_ENV
+          echo "API key credentials file created"
         fi
         
         echo "GITHUB_TOKEN=${{ inputs.github_token || github.token }}" >> $GITHUB_ENV
