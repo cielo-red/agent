@@ -42,6 +42,7 @@ jobs:
           fetch-depth: 0
       
       - name: Run Cielo Red
+        id: run-cielo-red
         uses: cielo-red/agent@v1
         with:
           # Authentication
@@ -73,17 +74,34 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issueNumber = context.issue.number;
-            const prUrl = '${{ steps.cielo-red.outputs.pr_url }}';
-            const filesChanged = '${{ steps.cielo-red.outputs.files_changed }}';
+            const prUrl = '${{ steps.run-cielo-red.outputs.pr_url }}';
+            const filesChanged = '${{ steps.run-cielo-red.outputs.files_changed }}';
+            const executionOutput = `${{ steps.run-cielo-red.outputs.execution_output }}`;
             
-            let comment = '✅ Cielo Red has completed the task.\n\n';
+            let comment = '## 🤖 Claude Code Response\n\n';
             
+            // Add the actual Claude Code output
+            if (executionOutput) {
+              comment += '### Output\n';
+              comment += '```\n';
+              comment += executionOutput.substring(0, 3000); // Limit for comment size
+              if (executionOutput.length > 3000) {
+                comment += '\n... (truncated for brevity)\n';
+              }
+              comment += '\n```\n\n';
+            }
+            
+            // Add PR and files info if available
             if (prUrl) {
-              comment += `📝 Pull Request: ${prUrl}\n`;
+              comment += `📝 **Pull Request:** ${prUrl}\n`;
             }
             
             if (filesChanged) {
-              comment += `📄 Files modified: ${filesChanged}\n`;
+              comment += `📄 **Files modified:** ${filesChanged}\n`;
+            }
+            
+            if (!executionOutput && !prUrl && !filesChanged) {
+              comment += '✅ Task completed with no output or changes.\n';
             }
             
             github.rest.issues.createComment({

@@ -89,12 +89,15 @@ outputs:
   execution_file:
     description: 'Path to the Cielo Red execution output file'
     value: ${{ steps.cielo-red.outputs.execution_file }}
+  execution_output:
+    description: 'The output from Claude Code execution'
+    value: ${{ steps.cielo-red.outputs.execution_output }}
   branch_name:
     description: 'The branch created by Cielo Red for this execution'
     value: ${{ steps.prepare.outputs.branch_name }}
   pr_url:
     description: 'URL of the created pull request (if applicable)'
-    value: ${{ steps.cielo-red.outputs.pr_url }}
+    value: ${{ steps.create-pr.outputs.pr_url }}
   files_changed:
     description: 'List of files modified by Cielo Red'
     value: ${{ steps.cielo-red.outputs.files_changed }}
@@ -184,13 +187,21 @@ runs:
         # Execute with prompt
         EXECUTION_FILE="${RUNNER_TEMP}/cielo-execution-$(date +%s).log"
         
-        if ${CIELO_CMD} "${PROMPT}" > "${EXECUTION_FILE}" 2>&1; then
+        if ${CIELO_CMD} "${PROMPT}" 2>&1 | tee "${EXECUTION_FILE}"; then
           echo "status=success" >> $GITHUB_OUTPUT
         else
           echo "status=failure" >> $GITHUB_OUTPUT
         fi
         
         echo "execution_file=${EXECUTION_FILE}" >> $GITHUB_OUTPUT
+        
+        # Capture execution output for use in comments
+        # Truncate to avoid GitHub output limits
+        EXECUTION_OUTPUT=$(tail -n 100 "${EXECUTION_FILE}" | head -c 60000)
+        # Use EOF delimiter to handle multi-line output
+        echo "execution_output<<EOF" >> $GITHUB_OUTPUT
+        echo "${EXECUTION_OUTPUT}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
         
         # Track changed files
         git diff --name-only > /tmp/changed_files.txt
