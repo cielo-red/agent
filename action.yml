@@ -182,8 +182,16 @@ runs:
           exit 0
         fi
         
+        # Install and setup Claude Code CLI
+        echo "Installing Claude Code CLI..."
+        if ! command -v claude &> /dev/null; then
+          # Try to install Claude CLI using the official installation method
+          curl -fsSL https://releases.anthropic.com/claude-code/install.sh | bash
+          export PATH="$HOME/.local/bin:$PATH"
+        fi
+        
         # Build command
-        CIELO_CMD="npx @anthropic-ai/claude-code"
+        CIELO_CMD="claude"
         
         if [[ "${{ inputs.auto_approve }}" == "true" || "${{ inputs.skip_confirmation }}" == "true" ]]; then
           CIELO_CMD="${CIELO_CMD} --yes"

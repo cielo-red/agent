@@ -155,18 +155,31 @@ Add your Anthropic API key as a repository secret named `ANTHROPIC_API_KEY`:
 #### Method 2: Claude CLI Credentials (Recommended)
 Add your Claude CLI credentials as a **base64-encoded** repository secret:
 
-1. Get your credentials file: `cat ~/.claude/.credentials.json | base64`
-2. Add the base64 output as a secret named `CLAUDE_CREDENTIALS`
-3. Use in your workflow:
+1. First, make sure you have Claude CLI installed and authenticated:
+   ```bash
+   # Install Claude CLI if not already installed
+   curl -fsSL https://releases.anthropic.com/claude-code/install.sh | bash
+   
+   # Authenticate with Claude CLI
+   claude auth login
+   ```
 
-```yaml
-- uses: cielo-red/agent@v1
-  with:
-    claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
-    prompt: 'Your task'
-```
+2. Get your credentials file and encode it:
+   ```bash
+   cat ~/.claude/.credentials.json | base64
+   ```
 
-The `claude_credentials` should contain the entire contents of your `~/.claude/.credentials.json` file.
+3. Add the base64 output as a repository secret named `CLAUDE_CREDENTIALS`
+
+4. Use in your workflow:
+   ```yaml
+   - uses: cielo-red/agent@v1
+     with:
+       claude_credentials: ${{ secrets.CLAUDE_CREDENTIALS }}
+       prompt: 'Your task'
+   ```
+
+**Note**: The `claude_credentials` should contain the base64-encoded contents of your `~/.claude/.credentials.json` file. This method is recommended as it provides more robust authentication compared to API keys alone.
 
 ### Workflow Setup
 
@@ -179,6 +192,27 @@ The `claude_credentials` should contain the entire contents of your `~/.claude/.
    - Assign issues to `cielo-red[bot]`
    - Add configured labels
    - Run manually via workflow dispatch
+
+## Troubleshooting
+
+### Common Issues
+
+#### Authentication Errors
+- **"Invalid API key"**: Ensure your `ANTHROPIC_API_KEY` is correctly set in repository secrets
+- **"Please run /login"**: Your Claude CLI credentials may be invalid or expired. Re-authenticate using `claude auth login` and update the `CLAUDE_CREDENTIALS` secret
+
+#### Installation Issues
+- **Package not found**: The action automatically installs Claude CLI using the official installer. If you encounter issues, ensure your runner has internet access and can execute shell scripts
+- **Permission errors**: Make sure the GitHub token has sufficient permissions (repo access)
+
+#### Execution Issues
+- **No prompt provided**: When triggered by comments, ensure the trigger phrase (`@cielo` by default) is present
+- **Action not triggering**: Check that your workflow file has the correct event triggers and conditions
+
+### Getting Help
+- Check the [Claude CLI documentation](https://docs.anthropic.com/en/docs/claude-code) for detailed setup instructions
+- Verify your repository secrets are correctly configured
+- Ensure workflow permissions allow the action to create branches and PRs
 
 ## Security
 
