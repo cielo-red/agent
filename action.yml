@@ -174,7 +174,7 @@ runs:
         fi
         
         # Build command
-        CIELO_CMD="npx @anthropic/claude-cli"
+        CIELO_CMD="npx @anthropic-ai/claude-code"
         
         if [[ "${{ inputs.auto_approve }}" == "true" || "${{ inputs.skip_confirmation }}" == "true" ]]; then
           CIELO_CMD="${CIELO_CMD} --yes"
