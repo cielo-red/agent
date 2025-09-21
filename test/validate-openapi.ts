@@ -1,8 +1,13 @@
-const SwaggerParser = require("@apidevtools/swagger-parser");
-const path = require("path");
-const fs = require("fs");
+import * as SwaggerParser from "@apidevtools/swagger-parser";
+import { OpenAPIV3 } from "openapi-types";
+import * as path from "path";
+import * as fs from "fs";
 
-async function validateOpenAPISpec() {
+interface MethodCount {
+  [method: string]: number;
+}
+
+async function validateOpenAPISpec(): Promise<void> {
   const specPath = path.join(__dirname, "..", "openapi.yaml");
 
   console.log("OpenAPI Specification Validation");
@@ -16,7 +21,7 @@ async function validateOpenAPISpec() {
     }
 
     // Parse and validate the OpenAPI spec
-    const api = await SwaggerParser.validate(specPath);
+    const api = await SwaggerParser.validate(specPath) as OpenAPIV3.Document;
 
     // Display basic info
     console.log("✓ Valid OpenAPI specification");
@@ -26,12 +31,13 @@ async function validateOpenAPISpec() {
     console.log(`  Description: ${api.info.description?.split('\n')[0]}...`);
 
     // Count and display endpoints
-    const paths = Object.keys(api.paths);
+    const paths = Object.keys(api.paths || {});
     let totalEndpoints = 0;
-    const methods = {};
+    const methods: MethodCount = {};
 
-    paths.forEach(path => {
-      const pathMethods = Object.keys(api.paths[path]).filter(method =>
+    paths.forEach(pathKey => {
+      const pathItem = api.paths![pathKey] as OpenAPIV3.PathItemObject;
+      const pathMethods = Object.keys(pathItem).filter(method =>
         ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'].includes(method)
       );
       totalEndpoints += pathMethods.length;
@@ -78,15 +84,15 @@ async function validateOpenAPISpec() {
     console.log(`\nAdditional Checks:`);
 
     // Check for operationId uniqueness
-    const operationIds = new Set();
+    const operationIds = new Set<string>();
     let duplicateOperationIds = false;
 
     paths.forEach(pathKey => {
-      const pathItem = api.paths[pathKey];
+      const pathItem = api.paths![pathKey] as OpenAPIV3.PathItemObject;
       Object.keys(pathItem).forEach(method => {
         if (['get', 'post', 'put', 'patch', 'delete', 'options', 'head'].includes(method)) {
-          const operation = pathItem[method];
-          if (operation.operationId) {
+          const operation = (pathItem as any)[method] as OpenAPIV3.OperationObject;
+          if (operation?.operationId) {
             if (operationIds.has(operation.operationId)) {
               duplicateOperationIds = true;
               console.log(`  ✗ Duplicate operationId found: ${operation.operationId}`);
@@ -104,11 +110,11 @@ async function validateOpenAPISpec() {
     // Check for missing descriptions
     let missingDescriptions = 0;
     paths.forEach(pathKey => {
-      const pathItem = api.paths[pathKey];
+      const pathItem = api.paths![pathKey] as OpenAPIV3.PathItemObject;
       Object.keys(pathItem).forEach(method => {
         if (['get', 'post', 'put', 'patch', 'delete', 'options', 'head'].includes(method)) {
-          const operation = pathItem[method];
-          if (!operation.description && !operation.summary) {
+          const operation = (pathItem as any)[method] as OpenAPIV3.OperationObject;
+          if (operation && !operation.description && !operation.summary) {
             missingDescriptions++;
           }
         }
@@ -124,11 +130,11 @@ async function validateOpenAPISpec() {
     // Check for response definitions
     let missingResponses = 0;
     paths.forEach(pathKey => {
-      const pathItem = api.paths[pathKey];
+      const pathItem = api.paths![pathKey] as OpenAPIV3.PathItemObject;
       Object.keys(pathItem).forEach(method => {
         if (['get', 'post', 'put', 'patch', 'delete', 'options', 'head'].includes(method)) {
-          const operation = pathItem[method];
-          if (!operation.responses || Object.keys(operation.responses).length === 0) {
+          const operation = (pathItem as any)[method] as OpenAPIV3.OperationObject;
+          if (operation && (!operation.responses || Object.keys(operation.responses).length === 0)) {
             missingResponses++;
           }
         }
@@ -144,13 +150,13 @@ async function validateOpenAPISpec() {
     console.log("\n✅ OpenAPI specification validation completed successfully!");
     process.exit(0);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("\n❌ Validation failed:");
     console.error(`  ${error.message}`);
 
     if (error.details) {
       console.error("\nDetailed errors:");
-      error.details.forEach(detail => {
+      error.details.forEach((detail: any) => {
         console.error(`  - ${detail}`);
       });
     }
