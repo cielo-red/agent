@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "description": "OpenAPI validation tests for configuration server",
   "scripts": {
-    "test": "npm run build && npm run test:openapi",
+    "test": "bun test",
     "build": "tsc",
-    "test:openapi": "node dist/test/validate-openapi.js",
-    "test:openapi:ts": "ts-node test/validate-openapi.ts"
+    "test:openapi": "bun test test/validate-openapi.test.ts"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
