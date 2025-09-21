@@ -45,12 +45,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Project Manager
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue create:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh workflow run:*),Bash(gh workflow list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue create:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh workflow run:*),Bash(gh workflow list:*)"'
 
   developer:
     if: contains(github.event.inputs.roles || '', 'developer')
@@ -76,12 +76,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Developer Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   architect:
     if: contains(github.event.inputs.roles || '', 'architect')
@@ -107,12 +107,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Architect Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   security:
     if: contains(github.event.inputs.roles || '', 'security')
@@ -138,12 +138,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Security Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   qa:
     if: contains(github.event.inputs.roles || '', 'qa')
@@ -169,12 +169,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run QA Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   devops:
     if: contains(github.event.inputs.roles || '', 'devops')
@@ -200,12 +200,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run DevOps Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   performance:
     if: contains(github.event.inputs.roles || '', 'performance')
@@ -231,12 +231,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Performance Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   frontend:
     if: contains(github.event.inputs.roles || '', 'frontend')
@@ -262,12 +262,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Frontend Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   backend:
     if: contains(github.event.inputs.roles || '', 'backend')
@@ -293,12 +293,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Backend Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   lead:
     if: contains(github.event.inputs.roles || '', 'lead')
@@ -324,9 +324,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Tech Lead Review
-        uses: ./
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
-          cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
