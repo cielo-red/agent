@@ -1,0 +1,867 @@
+openapi: 3.0.3
+info:
+  title: Configuration Server API
+  description: |
+    REST API for managing application configurations with GitHub token authentication.
+    This server provides a centralized configuration management system with support for
+    environments, versioning, and secure access control using GitHub authentication.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.config.example.com/v1
+    description: Production server
+  - url: https://staging-api.config.example.com/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Development server
+
+security:
+  - githubToken: []
+
+components:
+  securitySchemes:
+    githubToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        GitHub personal access token or GitHub App installation token.
+        The token should be passed in the Authorization header as: Bearer <token>
+
+        Required scopes:
+        - read:user (for user authentication)
+        - read:org (for organization access)
+
+  schemas:
+    Configuration:
+      type: object
+      required:
+        - id
+        - name
+        - environment
+        - data
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the configuration
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          description: Configuration name
+          minLength: 1
+          maxLength: 255
+          example: "database-config"
+        environment:
+          type: string
+          enum:
+            - development
+            - staging
+            - production
+            - test
+          description: Target environment for this configuration
+          example: "production"
+        description:
+          type: string
+          description: Optional description of the configuration
+          maxLength: 1000
+          example: "Database connection settings for production environment"
+        data:
+          type: object
+          description: Configuration data as key-value pairs
+          additionalProperties: true
+          example:
+            host: "db.example.com"
+            port: 5432
+            database: "myapp"
+            ssl: true
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags for categorizing configurations
+          example: ["database", "postgresql", "critical"]
+        version:
+          type: integer
+          description: Version number of the configuration
+          minimum: 1
+          example: 3
+        isActive:
+          type: boolean
+          description: Whether this configuration is currently active
+          default: true
+          example: true
+        createdBy:
+          type: string
+          description: GitHub username of the creator
+          example: "octocat"
+        updatedBy:
+          type: string
+          description: GitHub username of the last updater
+          example: "octocat"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the configuration was created
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the configuration was last updated
+          example: "2024-01-16T14:45:00Z"
+
+    ConfigurationCreate:
+      type: object
+      required:
+        - name
+        - environment
+        - data
+      properties:
+        name:
+          type: string
+          description: Configuration name
+          minLength: 1
+          maxLength: 255
+          example: "database-config"
+        environment:
+          type: string
+          enum:
+            - development
+            - staging
+            - production
+            - test
+          description: Target environment for this configuration
+          example: "production"
+        description:
+          type: string
+          description: Optional description of the configuration
+          maxLength: 1000
+          example: "Database connection settings"
+        data:
+          type: object
+          description: Configuration data as key-value pairs
+          additionalProperties: true
+          example:
+            host: "db.example.com"
+            port: 5432
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags for categorizing configurations
+          example: ["database", "postgresql"]
+
+    ConfigurationUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Configuration name
+          minLength: 1
+          maxLength: 255
+        environment:
+          type: string
+          enum:
+            - development
+            - staging
+            - production
+            - test
+          description: Target environment for this configuration
+        description:
+          type: string
+          description: Optional description of the configuration
+          maxLength: 1000
+        data:
+          type: object
+          description: Configuration data as key-value pairs
+          additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags for categorizing configurations
+        isActive:
+          type: boolean
+          description: Whether this configuration is currently active
+
+    ConfigurationList:
+      type: object
+      required:
+        - configurations
+        - pagination
+      properties:
+        configurations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Configuration'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    ConfigurationHistory:
+      type: object
+      required:
+        - version
+        - data
+        - changedBy
+        - changedAt
+      properties:
+        version:
+          type: integer
+          description: Version number
+          example: 2
+        data:
+          type: object
+          description: Configuration data at this version
+          additionalProperties: true
+        changeDescription:
+          type: string
+          description: Description of what changed
+          example: "Updated database host"
+        changedBy:
+          type: string
+          description: GitHub username who made the change
+          example: "octocat"
+        changedAt:
+          type: string
+          format: date-time
+          description: Timestamp of the change
+          example: "2024-01-15T10:30:00Z"
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - pageSize
+        - totalItems
+        - totalPages
+      properties:
+        page:
+          type: integer
+          description: Current page number
+          minimum: 1
+          example: 1
+        pageSize:
+          type: integer
+          description: Number of items per page
+          minimum: 1
+          maximum: 100
+          example: 20
+        totalItems:
+          type: integer
+          description: Total number of items
+          minimum: 0
+          example: 45
+        totalPages:
+          type: integer
+          description: Total number of pages
+          minimum: 0
+          example: 3
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "UNAUTHORIZED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid or expired GitHub token"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+          example: "2024-01-15T10:30:00Z"
+
+    UserInfo:
+      type: object
+      required:
+        - login
+        - id
+        - organizations
+      properties:
+        login:
+          type: string
+          description: GitHub username
+          example: "octocat"
+        id:
+          type: integer
+          description: GitHub user ID
+          example: 1234567
+        name:
+          type: string
+          description: User's display name
+          example: "The Octocat"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "octocat@github.com"
+        organizations:
+          type: array
+          items:
+            type: string
+          description: List of organizations the user belongs to
+          example: ["github", "my-org"]
+        permissions:
+          type: array
+          items:
+            type: string
+          description: List of permissions in this system
+          example: ["read", "write", "admin"]
+
+  parameters:
+    ConfigurationId:
+      name: id
+      in: path
+      required: true
+      description: Configuration ID
+      schema:
+        type: string
+        format: uuid
+
+    Environment:
+      name: environment
+      in: query
+      description: Filter by environment
+      schema:
+        type: string
+        enum:
+          - development
+          - staging
+          - production
+          - test
+
+    Tag:
+      name: tag
+      in: query
+      description: Filter by tag
+      schema:
+        type: string
+
+    Active:
+      name: active
+      in: query
+      description: Filter by active status
+      schema:
+        type: boolean
+
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    PageSize:
+      name: pageSize
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    SortBy:
+      name: sortBy
+      in: query
+      description: Field to sort by
+      schema:
+        type: string
+        enum:
+          - name
+          - environment
+          - createdAt
+          - updatedAt
+        default: updatedAt
+
+    SortOrder:
+      name: sortOrder
+      in: query
+      description: Sort order
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+        default: desc
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "UNAUTHORIZED"
+            message: "Invalid or expired GitHub token"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    Forbidden:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "FORBIDDEN"
+            message: "You don't have permission to access this resource"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "NOT_FOUND"
+            message: "Configuration not found"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "BAD_REQUEST"
+            message: "Invalid request data"
+            details:
+              field: "name"
+              reason: "Name is required"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    Conflict:
+      description: Conflict with existing resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "CONFLICT"
+            message: "Configuration with this name already exists"
+            timestamp: "2024-01-15T10:30:00Z"
+
+paths:
+  /auth/user:
+    get:
+      summary: Get authenticated user information
+      description: Returns information about the authenticated GitHub user
+      operationId: getAuthenticatedUser
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /configurations:
+    get:
+      summary: List configurations
+      description: Retrieve a paginated list of configurations with optional filters
+      operationId: listConfigurations
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/Environment'
+        - $ref: '#/components/parameters/Tag'
+        - $ref: '#/components/parameters/Active'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - name: search
+          in: query
+          description: Search term to filter configurations
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of configurations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create configuration
+      description: Create a new configuration
+      operationId: createConfiguration
+      tags:
+        - Configurations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationCreate'
+      responses:
+        '201':
+          description: Configuration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+          headers:
+            Location:
+              description: URL of the created configuration
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /configurations/{id}:
+    get:
+      summary: Get configuration
+      description: Retrieve a specific configuration by ID
+      operationId: getConfiguration
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationId'
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update configuration
+      description: Update an existing configuration
+      operationId: updateConfiguration
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationUpdate'
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    patch:
+      summary: Partially update configuration
+      description: Partially update an existing configuration
+      operationId: patchConfiguration
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationUpdate'
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete configuration
+      description: Delete a configuration
+      operationId: deleteConfiguration
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationId'
+      responses:
+        '204':
+          description: Configuration deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /configurations/{id}/history:
+    get:
+      summary: Get configuration history
+      description: Retrieve the version history of a configuration
+      operationId: getConfigurationHistory
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Configuration history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConfigurationHistory'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /configurations/{id}/rollback:
+    post:
+      summary: Rollback configuration
+      description: Rollback a configuration to a previous version
+      operationId: rollbackConfiguration
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+              properties:
+                version:
+                  type: integer
+                  description: Version to rollback to
+                  minimum: 1
+                  example: 2
+                reason:
+                  type: string
+                  description: Reason for rollback
+                  example: "Reverting breaking changes"
+      responses:
+        '200':
+          description: Configuration rolled back successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /configurations/export:
+    get:
+      summary: Export configurations
+      description: Export configurations in various formats
+      operationId: exportConfigurations
+      tags:
+        - Configurations
+      parameters:
+        - $ref: '#/components/parameters/Environment'
+        - $ref: '#/components/parameters/Tag'
+        - name: format
+          in: query
+          description: Export format
+          required: true
+          schema:
+            type: string
+            enum:
+              - json
+              - yaml
+              - env
+              - properties
+      responses:
+        '200':
+          description: Configurations exported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+            application/x-yaml:
+              schema:
+                type: object
+            text/plain:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /configurations/import:
+    post:
+      summary: Import configurations
+      description: Import configurations from various formats
+      operationId: importConfigurations
+      tags:
+        - Configurations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - format
+                - data
+              properties:
+                format:
+                  type: string
+                  enum:
+                    - json
+                    - yaml
+                    - env
+                    - properties
+                  description: Format of the imported data
+                data:
+                  type: string
+                  description: Configuration data to import (can be JSON string or base64 encoded)
+                overwrite:
+                  type: boolean
+                  default: false
+                  description: Whether to overwrite existing configurations
+      responses:
+        '200':
+          description: Configurations imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported:
+                    type: integer
+                    description: Number of configurations imported
+                    example: 5
+                  skipped:
+                    type: integer
+                    description: Number of configurations skipped
+                    example: 2
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        error:
+                          type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /health:
+    get:
+      summary: Health check
+      description: Check if the API is healthy and responding
+      operationId: healthCheck
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+                  version:
+                    type: string
+                    example: "1.0.0"
+
+tags:
+  - name: Authentication
+    description: Authentication and authorization endpoints
+  - name: Configurations
+    description: Configuration management endpoints
+  - name: System
+    description: System and health check endpoints
