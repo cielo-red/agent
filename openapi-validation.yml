@@ -1,0 +1,45 @@
+name: Validate OpenAPI Specification
+
+on:
+  push:
+    paths:
+      - 'openapi.yaml'
+      - 'test/validate-openapi.js'
+      - '.github/workflows/openapi-validation.yml'
+  pull_request:
+    paths:
+      - 'openapi.yaml'
+      - 'test/validate-openapi.js'
+      - '.github/workflows/openapi-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate OpenAPI Spec
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate OpenAPI specification
+        run: npm test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-validation-results
+          path: |
+            openapi.yaml
+            test/validate-openapi.js
+          retention-days: 30

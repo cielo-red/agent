@@ -1,0 +1,13 @@
+{
+  "name": "agent-openapi-tests",
+  "version": "1.0.0",
+  "description": "OpenAPI validation tests for configuration server",
+  "scripts": {
+    "test": "npm run test:openapi",
+    "test:openapi": "node test/validate-openapi.js"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0"
+  },
+  "private": true
+}
