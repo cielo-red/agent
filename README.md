@@ -14,7 +14,7 @@ A GitHub Action that integrates AI assistant into your GitHub workflows for auto
 ## Features
 
 - 🤖 **Auto-detection**: Automatically detects execution mode based on GitHub event type
-- 💬 **Comment triggers**: Responds to @cielo mentions in issues and PRs
+- 💬 **Comment triggers**: Responds to @cielo-red mentions in issues and PRs
 - 🏷️ **Label triggers**: Activates when specific labels are added
 - 👤 **Assignment triggers**: Works when issues are assigned to cielo-red[bot]
 - 🔄 **Pull request creation**: Automatically creates PRs with changes
@@ -49,7 +49,7 @@ A GitHub Action that integrates AI assistant into your GitHub workflows for auto
 
 | Input | Description | Default |
 |-------|-------------|---------|
-| `trigger_phrase` | Phrase to trigger in comments | `@cielo` |
+| `trigger_phrase` | Phrase to trigger in comments | `@cielo-red` |
 | `assignee_trigger` | Trigger on issue assignment | `true` |
 | `label_trigger` | Trigger on label addition | `false` |
 | `label_name` | Label name to trigger on | `cielo-red` |
@@ -78,7 +78,7 @@ on:
 jobs:
   cielo:
     runs-on: ubuntu-latest
-    if: contains(github.event.comment.body, '@cielo')
+    if: contains(github.event.comment.body, '@cielo-red')
     steps:
       - uses: actions/checkout@v4
       - uses: cielo-red/agent@v1
@@ -153,10 +153,10 @@ Add your Anthropic API key as a repository secret named `ANTHROPIC_API_KEY`:
 ```
 
 #### Method 2: Claude CLI Credentials (Recommended)
-Add your Claude CLI credentials as a **base64-encoded** repository secret:
+Add your Claude CLI credentials JSON as a repository secret:
 
-1. Get your credentials file: `cat ~/.claude/.credentials.json | base64`
-2. Add the base64 output as a secret named `CLAUDE_CREDENTIALS`
+1. Get your credentials file: `cat ~/.claude/.credentials.json`
+2. Add the JSON content as a secret named `CLAUDE_CREDENTIALS`
 3. Use in your workflow:
 
 ```yaml
@@ -175,7 +175,7 @@ The `claude_credentials` should contain the entire contents of your `~/.claude/.
 2. **Create Workflow**: Add a workflow file to `.github/workflows/` using one of the examples above
 
 3. **Trigger Action**: 
-   - Comment with `@cielo` in issues or PRs
+   - Comment with `@cielo-red` in issues or PRs
    - Assign issues to `cielo-red[bot]`
    - Add configured labels
    - Run manually via workflow dispatch

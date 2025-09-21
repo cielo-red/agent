@@ -28,10 +28,10 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
-    # Only run if comment contains @cielo or issue is assigned to cielo-red[bot]
+    # Only run if comment contains @cielo-red or issue is assigned to cielo-red[bot]
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@cielo')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@cielo')) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@cielo-red')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@cielo-red')) ||
       (github.event_name == 'issues' && github.event.assignee.login == 'cielo-red[bot]') ||
       github.event_name == 'workflow_dispatch'
     
@@ -114,7 +114,7 @@ jobs:
 # Example usage scenarios:
 
 # 1. Issue Comment Trigger:
-#    Comment "@cielo please fix the typos in README.md"
+#    Comment "@cielo-red please fix the typos in README.md"
 
 # 2. Issue Assignment:
 #    Assign an issue to cielo-red[bot] user
@@ -123,4 +123,4 @@ jobs:
 #    Go to Actions tab → Select workflow → Run workflow → Enter prompt
 
 # 4. Pull Request Review:
-#    Comment "@cielo review this code for security issues"
+#    Comment "@cielo-red review this code for security issues"
