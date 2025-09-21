@@ -8,18 +8,18 @@ branding:
 inputs:
   prompt:
     description: 'The natural language prompt describing what Claude Code should do'
-    required: true
+    required: false
+    default: ''
   
   # Authentication
   anthropic_api_key:
     description: 'Anthropic API key for Claude Code authentication'
-    required: true
+    required: false
+  claude_credentials:
+    description: 'Claude CLI credentials JSON (base64 encoded)'
+    required: false
   
   # Optional configuration
-  working_directory:
-    description: 'Working directory to run Claude Code in'
-    required: false
-    default: '.'
   auto_approve:
     description: 'Automatically approve Claude Code actions without prompts'
     required: false
@@ -43,11 +43,17 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Setup Claude credentials
+      if: inputs.claude_credentials != ''
+      shell: bash
+      run: |
+        mkdir -p ~/.claude
+        echo "${{ inputs.claude_credentials }}" | base64 -d > ~/.claude/.credentials.json
+    
     - name: Run Claude Code
       id: run-claude-code
       uses: anthropics/claude-code-action@v1
       with:
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
         prompt: ${{ inputs.prompt }}
-        working_directory: ${{ inputs.working_directory }}
-        claude_args: ${{ format('--yes {0}', inputs.additional_args) }}
+        claude_args: ${{ inputs.auto_approve == 'true' && format('--yes {0}', inputs.additional_args) || inputs.additional_args }}
