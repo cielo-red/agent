@@ -51,8 +51,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue create:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh workflow run:*),Bash(gh workflow list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   developer:
     if: contains(github.event.inputs.roles || '', 'developer')
@@ -84,8 +82,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   architect:
     if: contains(github.event.inputs.roles || '', 'architect')
@@ -117,8 +113,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   security:
     if: contains(github.event.inputs.roles || '', 'security')
@@ -150,8 +144,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   qa:
     if: contains(github.event.inputs.roles || '', 'qa')
@@ -183,8 +175,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   devops:
     if: contains(github.event.inputs.roles || '', 'devops')
@@ -216,8 +206,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   performance:
     if: contains(github.event.inputs.roles || '', 'performance')
@@ -249,8 +237,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   frontend:
     if: contains(github.event.inputs.roles || '', 'frontend')
@@ -282,8 +268,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   backend:
     if: contains(github.event.inputs.roles || '', 'backend')
@@ -315,8 +299,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
 
   lead:
     if: contains(github.event.inputs.roles || '', 'lead')
@@ -348,5 +330,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           cielo_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
-          create_pr: 'false'
-          auto_approve: 'true'
