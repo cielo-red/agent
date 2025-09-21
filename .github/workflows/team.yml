@@ -16,8 +16,9 @@ on:
 
 jobs:
   manager:
-    if: contains(github.event.inputs.roles || 'manager', 'manager')
     runs-on: ubuntu-latest
+    outputs:
+      roles: ${{ steps.determine-roles.outputs.roles }}
     permissions:
       contents: read
       pull-requests: write
@@ -35,16 +36,34 @@ jobs:
         id: read-prompt
         run: |
           PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
+
+          # Add instruction to output roles to execute
+          PROMPT="$PROMPT
+
+          IMPORTANT: Based on the task or PR changes, determine which roles need to be executed.
+          Output EXACTLY one line at the end of your response in this format:
+          ROLES_TO_RUN: role1,role2,role3
+
+          Available roles: developer, architect, security, qa, devops, performance, frontend, backend, lead
+
+          Choose the appropriate roles based on:
+          - Type of changes in the PR
+          - Complexity and scope of the task
+          - Required expertise
+          "
+
           if [ -n "${{ github.event.inputs.task }}" ]; then
             PROMPT="$PROMPT
 
             Task to implement: ${{ github.event.inputs.task }}"
           fi
+
           echo "prompt<<EOF" >> $GITHUB_OUTPUT
           echo "$PROMPT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Project Manager
+        id: run-manager
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -52,8 +71,26 @@ jobs:
           prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue create:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh workflow run:*),Bash(gh workflow list:*)"'
 
+      - name: Determine roles to run
+        id: determine-roles
+        run: |
+          # Extract roles from manager output (looking for ROLES_TO_RUN: line)
+          # For now, if no roles specified or if running from workflow_dispatch with roles input, use that
+          if [ -n "${{ github.event.inputs.roles }}" ]; then
+            ROLES="${{ github.event.inputs.roles }}"
+          else
+            # Default to common roles for PRs
+            ROLES="developer,architect,security,qa"
+          fi
+
+          # Convert to JSON array for matrix
+          ROLES_JSON=$(echo "$ROLES" | tr ',' '\n' | jq -R . | jq -s -c .)
+          echo "roles=$ROLES_JSON" >> $GITHUB_OUTPUT
+          echo "Roles to run: $ROLES_JSON"
+
   developer:
-    if: contains(github.event.inputs.roles || '', 'developer')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'developer')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -84,7 +121,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   architect:
-    if: contains(github.event.inputs.roles || '', 'architect')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'architect')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -115,7 +153,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   security:
-    if: contains(github.event.inputs.roles || '', 'security')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'security')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -146,7 +185,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   qa:
-    if: contains(github.event.inputs.roles || '', 'qa')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'qa')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -177,7 +217,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   devops:
-    if: contains(github.event.inputs.roles || '', 'devops')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'devops')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -208,7 +249,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   performance:
-    if: contains(github.event.inputs.roles || '', 'performance')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'performance')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -239,7 +281,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   frontend:
-    if: contains(github.event.inputs.roles || '', 'frontend')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'frontend')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -270,7 +313,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   backend:
-    if: contains(github.event.inputs.roles || '', 'backend')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'backend')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -301,7 +345,8 @@ jobs:
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   lead:
-    if: contains(github.event.inputs.roles || '', 'lead')
+    needs: manager
+    if: contains(fromJson(needs.manager.outputs.roles), 'lead')
     runs-on: ubuntu-latest
     permissions:
       contents: read
