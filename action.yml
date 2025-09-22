@@ -137,6 +137,63 @@ runs:
         cd ${GITHUB_ACTION_PATH}
         bun install
 
+    - name: Set Agent Prompt File
+      id: set-prompt-file
+      shell: bash
+      run: |
+        bun run ${{ github.action_path }}/src/entrypoints/set-agent-prompt-file.ts
+      env:
+        GITHUB_JOB: ${{ github.job }}
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+
+    - name: Create Agent Directory
+      if: steps.set-prompt-file.outputs.source == 'default'
+      shell: bash
+      run: |
+        bun run ${{ github.action_path }}/src/entrypoints/create-agent-directory.ts "${{ steps.set-prompt-file.outputs.prompt_file }}"
+
+    - name: Generate Agent Prompt with Claude Code
+      if: steps.set-prompt-file.outputs.source == 'default'
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
+        prompt: |
+          Create a detailed, professional agent prompt for a "${{ github.job }}" role in a software development team. 
+          
+          This prompt will be used in GitHub Actions workflows where the agent reviews code changes, pull requests, and provides expert analysis.
+          
+          Requirements:
+          - Write in second person ("You are a...")
+          - Include specific responsibilities for a ${{ github.job }} specialist
+          - Add relevant guidelines and best practices for this role
+          - Include what to look for in code reviews from this perspective
+          - Make it actionable and specific to the ${{ github.job }} domain
+          - End with a clear call to action for analysis
+          
+          Write the complete prompt as a markdown file and save it to "${{ steps.set-prompt-file.outputs.prompt_file }}"
+        claude_args: '--allowed-tools "Write"'
+
+    - name: Read Agent Prompt
+      id: read-prompt
+      shell: bash
+      run: |
+        bun run ${{ github.action_path }}/src/entrypoints/read-agent-prompt.ts "${{ steps.set-prompt-file.outputs.prompt_file }}"
+      env:
+        GITHUB_EVENT_INPUTS_TASK: ${{ github.event.inputs.task }}
+
+    - name: Run Claude Code
+      id: claude-code
+      if: steps.prepare.outputs.contains_trigger == 'true'
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
+        github_token: ${{ steps.prepare.outputs.GITHUB_TOKEN }}
+        prompt: ${{ steps.read-prompt.outputs.prompt }}
+        claude_args: ${{ steps.prepare.outputs.claude_args }}
+        additional_permissions: ${{ inputs.additional_permissions }}
+
     - name: Prepare action
       id: prepare
       shell: bash
@@ -144,7 +201,7 @@ runs:
         bun run ${GITHUB_ACTION_PATH}/src/entrypoints/prepare.ts
       env:
         MODE: ${{ inputs.mode }}
-        PROMPT: ${{ inputs.prompt }}
+        PROMPT: ${{ inputs.prompt || steps.read-prompt.outputs.prompt }}
         TRIGGER_PHRASE: ${{ inputs.trigger_phrase }}
         ASSIGNEE_TRIGGER: ${{ inputs.assignee_trigger }}
         LABEL_TRIGGER: ${{ inputs.label_trigger }}
@@ -195,55 +252,6 @@ runs:
       env:
         EXPERIMENTAL_ALLOWED_DOMAINS: ${{ inputs.experimental_allowed_domains }}
 
-    - name: Run AI Code
-      id: claude-code
-      if: steps.prepare.outputs.contains_trigger == 'true'
-      shell: bash
-      run: |
-
-        # Run the base-action
-        bun run ${GITHUB_ACTION_PATH}/base-action/src/index.ts
-      env:
-        # Base-action inputs
-        CLAUDE_CODE_ACTION: "1"
-        INPUT_PROMPT_FILE: ${{ runner.temp }}/claude-prompts/claude-prompt.txt
-        INPUT_SETTINGS: ${{ inputs.settings }}
-        INPUT_CLAUDE_ARGS: ${{ steps.prepare.outputs.claude_args }}
-        INPUT_EXPERIMENTAL_SLASH_COMMANDS_DIR: ${{ github.action_path }}/slash-commands
-        INPUT_ACTION_INPUTS_PRESENT: ${{ steps.prepare.outputs.action_inputs_present }}
-        INPUT_PATH_TO_CLAUDE_CODE_EXECUTABLE: ${{ inputs.path_to_claude_code_executable }}
-        INPUT_PATH_TO_BUN_EXECUTABLE: ${{ inputs.path_to_bun_executable }}
-
-        # Model configuration
-        GITHUB_TOKEN: ${{ steps.prepare.outputs.GITHUB_TOKEN }}
-        NODE_VERSION: ${{ env.NODE_VERSION }}
-        DETAILED_PERMISSION_MESSAGES: "1"
-
-        # Provider configuration
-        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
-        CLAUDE_CODE_OAUTH_TOKEN: ${{ inputs.claude_code_oauth_token }}
-        ANTHROPIC_BASE_URL: ${{ env.ANTHROPIC_BASE_URL }}
-        ANTHROPIC_CUSTOM_HEADERS: ${{ env.ANTHROPIC_CUSTOM_HEADERS }}
-        CLAUDE_CODE_USE_BEDROCK: ${{ inputs.use_bedrock == 'true' && '1' || '' }}
-        CLAUDE_CODE_USE_VERTEX: ${{ inputs.use_vertex == 'true' && '1' || '' }}
-
-        # AWS configuration
-        AWS_REGION: ${{ env.AWS_REGION }}
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-        ANTHROPIC_BEDROCK_BASE_URL: ${{ env.ANTHROPIC_BEDROCK_BASE_URL || (env.AWS_REGION && format('https://bedrock-runtime.{0}.amazonaws.com', env.AWS_REGION)) }}
-
-        # GCP configuration
-        ANTHROPIC_VERTEX_PROJECT_ID: ${{ env.ANTHROPIC_VERTEX_PROJECT_ID }}
-        CLOUD_ML_REGION: ${{ env.CLOUD_ML_REGION }}
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
-        ANTHROPIC_VERTEX_BASE_URL: ${{ env.ANTHROPIC_VERTEX_BASE_URL }}
-
-        # Model-specific regions for Vertex
-        VERTEX_REGION_CLAUDE_3_5_HAIKU: ${{ env.VERTEX_REGION_CLAUDE_3_5_HAIKU }}
-        VERTEX_REGION_CLAUDE_3_5_SONNET: ${{ env.VERTEX_REGION_CLAUDE_3_5_SONNET }}
-        VERTEX_REGION_CLAUDE_3_7_SONNET: ${{ env.VERTEX_REGION_CLAUDE_3_7_SONNET }}
 
     - name: Update comment with job link
       if: steps.prepare.outputs.contains_trigger == 'true' && steps.prepare.outputs.claude_comment_id && always()
