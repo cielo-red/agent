@@ -1,239 +1,307 @@
-name: 'Cielo Red'
-description: 'Flexible GitHub automation platform powered by AI. Auto-detects mode based on event type.'
-author: 'cielo-red'
+name: "Cielo Red Action v1.0"
+description: "Flexible GitHub automation platform with AI. Auto-detects mode based on event type: PR reviews, mentions, or custom automation."
 branding:
-  icon: 'at-sign'
-  color: 'orange'
+  icon: "at-sign"
+  color: "orange"
 
 inputs:
-  # Trigger configuration
   trigger_phrase:
-    description: 'The trigger phrase to look for in comments or issue body'
+    description: "The trigger phrase to look for in comments or issue body"
     required: false
-    default: '@cielo'
+    default: "@cielo"
   assignee_trigger:
-    description: 'Whether to trigger when an issue is assigned to Cielo Red (cielo-red[bot])'
+    description: "The assignee username that triggers the action (e.g. @cielo)"
     required: false
-    default: 'true'
   label_trigger:
-    description: 'Whether to trigger when specific label is added'
+    description: "The label that triggers the action (e.g. cielo-red)"
     required: false
-    default: 'false'
-  label_name:
-    description: 'Name of the label to trigger on'
-    required: false
-    default: 'cielo-red'
-  
-  # Core functionality
-  prompt:
-    description: 'Instructions for Cielo Red. Can be a direct prompt or custom template.'
-    required: false
-    default: ''
-  cielo_args:
-    description: 'Additional arguments to pass to Cielo Red CLI'
-    required: false
-    default: ''
-  model:
-    description: 'AI model to use'
-    required: false
-    default: 'claude-3-5-sonnet-20241022'
-  temperature:
-    description: 'Temperature for response generation (0-1)'
-    required: false
-    default: '0'
-  max_tokens:
-    description: 'Maximum tokens for response'
-    required: false
-    default: '8192'
-  
-  # Authentication
-  github_token:
-    description: 'GitHub token with repo and pull request permissions'
-    required: false
-  anthropic_api_key:
-    description: 'Anthropic API key (required for direct API)'
-    required: false
-  claude_credentials:
-    description: 'Base64-encoded Claude CLI credentials JSON (alternative to anthropic_api_key). Should be the base64-encoded contents of ~/.claude/.credentials.json'
-    required: false
-  
-  # Behavior configuration
-  auto_approve:
-    description: 'Automatically approve all Cielo Red actions'
-    required: false
-    default: 'true'
-  create_pr:
-    description: 'Whether to create a pull request with changes'
-    required: false
-    default: 'true'
+    default: "cielo-red"
   base_branch:
-    description: 'Base branch for pull requests'
+    description: "The branch to use as the base/source when creating new branches (defaults to repository default branch)"
     required: false
-    default: 'main'
-  
-  # Advanced options
-  working_directory:
-    description: 'Working directory for Cielo Red'
+  branch_prefix:
+    description: "The prefix to use for branches (defaults to 'cielo/', use 'cielo-' for dash format)"
     required: false
-    default: '.'
-  skip_confirmation:
-    description: 'Skip confirmation prompts'
+    default: "cielo/"
+  allowed_bots:
+    description: "Comma-separated list of allowed bot usernames, or '*' to allow all bots. Empty string (default) allows no bots."
     required: false
-    default: 'false'
-  max_retries:
-    description: 'Maximum number of retries for failed operations'
+    default: ""
+  allowed_non_write_users:
+    description: "Comma-separated list of usernames to allow without write permissions, or '*' to allow all users. Only works when github_token input is provided. WARNING: Use with extreme caution - this bypasses security checks and should only be used for workflows with very limited permissions (e.g., issue labeling)."
     required: false
-    default: '3'
+    default: ""
+
+  # AI configuration
+  prompt:
+    description: "Instructions for the AI. Can be a direct prompt or custom template."
+    required: false
+    default: ""
+  settings:
+    description: "AI settings as JSON string or path to settings JSON file"
+    required: false
+    default: ""
+
+  # Auth configuration
+  anthropic_api_key:
+    description: "Anthropic API key (required for direct API, not needed for Bedrock/Vertex)"
+    required: false
+  claude_code_oauth_token:
+    description: "OAuth token (alternative to anthropic_api_key)"
+    required: false
+  github_token:
+    description: "GitHub token with repo and pull request permissions (optional if using GitHub App)"
+    required: false
+  use_bedrock:
+    description: "Use Amazon Bedrock with OIDC authentication instead of direct Anthropic API"
+    required: false
+    default: "false"
+  use_vertex:
+    description: "Use Google Vertex AI with OIDC authentication instead of direct Anthropic API"
+    required: false
+    default: "false"
+
+  cielo_args:
+    description: "Additional arguments to pass directly to CLI"
+    required: false
+    default: ""
+  additional_permissions:
+    description: "Additional GitHub permissions to request (e.g., 'actions: read')"
+    required: false
+    default: ""
+  use_sticky_comment:
+    description: "Use just one comment to deliver issue/PR comments"
+    required: false
+    default: "false"
+  use_commit_signing:
+    description: "Enable commit signing using GitHub's commit signature verification. When false, uses standard git commands"
+    required: false
+    default: "false"
+  bot_id:
+    description: "GitHub user ID to use for git operations"
+    required: false
+    default: "41898282"
+  bot_name:
+    description: "GitHub username to use for git operations"
+    required: false
+    default: "cielo-red[bot]"
+  track_progress:
+    description: "Force tag mode with tracking comments for pull_request and issue events. Only applicable to pull_request (opened, synchronize, ready_for_review, reopened) and issue (opened, edited, labeled, assigned) events."
+    required: false
+    default: "false"
+  experimental_allowed_domains:
+    description: "Restrict network access to these domains only (newline-separated). If not set, no restrictions are applied. Provider domains are auto-detected."
+    required: false
+    default: ""
+  path_to_claude_code_executable:
+    description: "Optional path to a custom executable. If provided, skips automatic installation and uses this executable instead. WARNING: Using an older version may cause problems if the action begins taking advantage of new features. This input is typically not needed unless you're debugging something specific or have unique needs in your environment."
+    required: false
+    default: ""
+  path_to_bun_executable:
+    description: "Optional path to a custom Bun executable. If provided, skips automatic Bun installation and uses this executable instead. WARNING: Using an incompatible version may cause problems if the action requires specific Bun features. This input is typically not needed unless you're debugging something specific or have unique needs in your environment."
+    required: false
+    default: ""
 
 outputs:
   execution_file:
-    description: 'Path to the Cielo Red execution output file'
-    value: ${{ steps.cielo-red.outputs.execution_file }}
-  execution_output:
-    description: 'The output from Claude Code execution'
-    value: ${{ steps.cielo-red.outputs.execution_output }}
+    description: "Path to the execution output file"
+    value: ${{ steps.claude-code.outputs.execution_file }}
   branch_name:
-    description: 'The branch created by Cielo Red for this execution'
-    value: ${{ steps.prepare.outputs.branch_name }}
-  pr_url:
-    description: 'URL of the created pull request (if applicable)'
-    value: ${{ steps.create-pr.outputs.pr_url }}
-  files_changed:
-    description: 'List of files modified by Cielo Red'
-    value: ${{ steps.cielo-red.outputs.files_changed }}
-  status:
-    description: 'Execution status (success/failure)'
-    value: ${{ steps.cielo-red.outputs.status }}
+    description: "The branch created for this execution"
+    value: ${{ steps.prepare.outputs.CLAUDE_BRANCH }}
+  github_token:
+    description: "The GitHub token used by the action (App token if available)"
+    value: ${{ steps.prepare.outputs.github_token }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Setup Cielo Red Environment
+    - name: Install Bun
+      if: inputs.path_to_bun_executable == ''
+      uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # https://github.com/oven-sh/setup-bun/releases/tag/v2.0.2
+      with:
+        bun-version: 1.2.11
+
+    - name: Setup Custom Bun Path
+      if: inputs.path_to_bun_executable != ''
       shell: bash
       run: |
-        echo "Setting up Cielo Red environment..."
-        
-        # Set up Claude CLI credentials if provided
-        if [[ -n "${{ inputs.claude_credentials }}" ]]; then
-          echo "Setting up Claude CLI credentials..."
-          mkdir -p ~/.claude
-          # Use base64 encoding to avoid issues with secret masking
-          echo "${{ inputs.claude_credentials }}" | base64 -d > ~/.claude/.credentials.json
-          chmod 600 ~/.claude/.credentials.json
-          echo "Claude credentials file created"
-        elif [[ -n "${{ inputs.anthropic_api_key }}" ]]; then
-          echo "Setting up Anthropic API key..."
-          # Create a minimal credentials.json from the API key
-          mkdir -p ~/.claude
-          cat > ~/.claude/.credentials.json <<EOF
-        {
-          "apiKey": "${{ inputs.anthropic_api_key }}"
-        }
-        EOF
-          chmod 600 ~/.claude/.credentials.json
-          echo "API key credentials file created"
-        fi
-        
-        echo "GITHUB_TOKEN=${{ inputs.github_token || github.token }}" >> $GITHUB_ENV
-        echo "CIELO_MODEL=${{ inputs.model }}" >> $GITHUB_ENV
-        echo "CIELO_TEMPERATURE=${{ inputs.temperature }}" >> $GITHUB_ENV
-        echo "CIELO_MAX_TOKENS=${{ inputs.max_tokens }}" >> $GITHUB_ENV
-    
-    - name: Prepare Action Context
+        echo "Using custom Bun executable: ${{ inputs.path_to_bun_executable }}"
+        # Add the directory containing the custom executable to PATH
+        BUN_DIR=$(dirname "${{ inputs.path_to_bun_executable }}")
+        echo "$BUN_DIR" >> "$GITHUB_PATH"
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        cd ${GITHUB_ACTION_PATH}
+        bun install
+
+    - name: Set Agent Prompt File
+      id: set-prompt-file
+      shell: bash
+      run: |
+        bun run ${{ github.action_path }}/src/entrypoints/set-agent-prompt-file.ts
+      env:
+        GITHUB_JOB: ${{ github.job }}
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+
+    - name: Create Agent Directory
+      if: steps.set-prompt-file.outputs.source == 'default'
+      shell: bash
+      run: |
+        bun run ${{ github.action_path }}/src/entrypoints/create-agent-directory.ts "${{ steps.set-prompt-file.outputs.prompt_file }}"
+
+    - name: Generate Agent Prompt with Claude Code
+      if: steps.set-prompt-file.outputs.source == 'default'
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
+        prompt: |
+          Create a detailed, professional agent prompt for a "${{ github.job }}" role in a software development team. 
+          
+          This prompt will be used in GitHub Actions workflows where the agent reviews code changes, pull requests, and provides expert analysis.
+          
+          Requirements:
+          - Write in second person ("You are a...")
+          - Include specific responsibilities for a ${{ github.job }} specialist
+          - Add relevant guidelines and best practices for this role
+          - Include what to look for in code reviews from this perspective
+          - Make it actionable and specific to the ${{ github.job }} domain
+          - End with a clear call to action for analysis
+          
+          Write the complete prompt as a markdown file and save it to "${{ steps.set-prompt-file.outputs.prompt_file }}"
+        claude_args: '--allowed-tools "Write"'
+
+    - name: Read Agent Prompt
+      id: read-prompt
+      shell: bash
+      run: |
+        bun run ${{ github.action_path }}/src/entrypoints/read-agent-prompt.ts "${{ steps.set-prompt-file.outputs.prompt_file }}"
+      env:
+        GITHUB_EVENT_INPUTS_TASK: ${{ github.event.inputs.task }}
+
+    - name: Run Claude Code
+      id: claude-code
+      if: steps.prepare.outputs.contains_trigger == 'true'
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
+        github_token: ${{ steps.prepare.outputs.GITHUB_TOKEN }}
+        prompt: ${{ steps.read-prompt.outputs.prompt }}
+        claude_args: ${{ steps.prepare.outputs.claude_args }}
+        additional_permissions: ${{ inputs.additional_permissions }}
+
+    - name: Prepare action
       id: prepare
       shell: bash
       run: |
-        # Determine execution mode based on event
-        if [[ "${{ github.event_name }}" == "issue_comment" || "${{ github.event_name }}" == "pull_request_review_comment" ]]; then
-          echo "mode=comment" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.event_name }}" == "issues" ]]; then
-          echo "mode=issue" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "mode=pr" >> $GITHUB_OUTPUT
-        else
-          echo "mode=direct" >> $GITHUB_OUTPUT
-        fi
-        
-        # Generate branch name
-        BRANCH_NAME="cielo-red-$(date +%Y%m%d-%H%M%S)"
-        echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-    
-    - name: Run Cielo Red
-      id: cielo-red
+        bun run ${GITHUB_ACTION_PATH}/src/entrypoints/prepare.ts
+      env:
+        MODE: ${{ inputs.mode }}
+        PROMPT: ${{ inputs.prompt || steps.read-prompt.outputs.prompt }}
+        TRIGGER_PHRASE: ${{ inputs.trigger_phrase }}
+        ASSIGNEE_TRIGGER: ${{ inputs.assignee_trigger }}
+        LABEL_TRIGGER: ${{ inputs.label_trigger }}
+        BASE_BRANCH: ${{ inputs.base_branch }}
+        BRANCH_PREFIX: ${{ inputs.branch_prefix }}
+        OVERRIDE_GITHUB_TOKEN: ${{ inputs.github_token }}
+        ALLOWED_BOTS: ${{ inputs.allowed_bots }}
+        ALLOWED_NON_WRITE_USERS: ${{ inputs.allowed_non_write_users }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        USE_STICKY_COMMENT: ${{ inputs.use_sticky_comment }}
+        DEFAULT_WORKFLOW_TOKEN: ${{ github.token }}
+        USE_COMMIT_SIGNING: ${{ inputs.use_commit_signing }}
+        BOT_ID: ${{ inputs.bot_id }}
+        BOT_NAME: ${{ inputs.bot_name }}
+        TRACK_PROGRESS: ${{ inputs.track_progress }}
+        ADDITIONAL_PERMISSIONS: ${{ inputs.additional_permissions }}
+        CLAUDE_ARGS: ${{ inputs.cielo_args }}
+        ALL_INPUTS: ${{ toJson(inputs) }}
+
+    - name: Install Base Action Dependencies
+      if: steps.prepare.outputs.contains_trigger == 'true'
       shell: bash
       run: |
-        cd ${{ inputs.working_directory }}
-        
-        # Determine the prompt to use
-        PROMPT="${{ inputs.prompt }}"
-        
-        # If no prompt provided, check for comment-based triggers
-        if [[ -z "${PROMPT}" ]]; then
-          if [[ "${{ github.event_name }}" == "issue_comment" || "${{ github.event_name }}" == "pull_request_review_comment" ]]; then
-            PROMPT="${{ github.event.comment.body }}"
-            echo "Using comment body as prompt"
-          fi
-        fi
-        
-        # Skip execution if still no prompt
-        if [[ -z "${PROMPT}" ]]; then
-          echo "Error: No prompt provided. Skipping Cielo Red execution."
-          echo "status=skipped" >> $GITHUB_OUTPUT
-          exit 0
-        fi
-        
-        # Build command
-        CIELO_CMD="npx @anthropic-ai/claude-code"
-        
-        if [[ "${{ inputs.auto_approve }}" == "true" || "${{ inputs.skip_confirmation }}" == "true" ]]; then
-          CIELO_CMD="${CIELO_CMD} --yes"
-        fi
-        
-        if [[ -n "${{ inputs.cielo_args }}" ]]; then
-          CIELO_CMD="${CIELO_CMD} ${{ inputs.cielo_args }}"
-        fi
-        
-        # Execute with prompt
-        EXECUTION_FILE="${RUNNER_TEMP}/cielo-execution-$(date +%s).log"
-        
-        if ${CIELO_CMD} "${PROMPT}" 2>&1 | tee "${EXECUTION_FILE}"; then
-          echo "status=success" >> $GITHUB_OUTPUT
+        echo "Installing base-action dependencies..."
+        cd ${GITHUB_ACTION_PATH}/base-action
+        bun install
+        echo "Base-action dependencies installed"
+        cd -
+
+        # Install executable if no custom executable is provided
+        if [ -z "${{ inputs.path_to_claude_code_executable }}" ]; then
+          echo "Installing CLI..."
+          curl -fsSL https://claude.ai/install.sh | bash -s 1.0.120
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         else
-          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "Using custom executable: ${{ inputs.path_to_claude_code_executable }}"
+          # Add the directory containing the custom executable to PATH
+          CLAUDE_DIR=$(dirname "${{ inputs.path_to_claude_code_executable }}")
+          echo "$CLAUDE_DIR" >> "$GITHUB_PATH"
         fi
-        
-        echo "execution_file=${EXECUTION_FILE}" >> $GITHUB_OUTPUT
-        
-        # Capture execution output for use in comments
-        # Truncate to avoid GitHub output limits
-        EXECUTION_OUTPUT=$(tail -n 100 "${EXECUTION_FILE}" | head -c 60000)
-        # Use EOF delimiter to handle multi-line output
-        echo "execution_output<<EOF" >> $GITHUB_OUTPUT
-        echo "${EXECUTION_OUTPUT}" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-        # Track changed files
-        git diff --name-only > /tmp/changed_files.txt
-        CHANGED_FILES=$(cat /tmp/changed_files.txt | tr '\n' ',' | sed 's/,$//')
-        echo "files_changed=${CHANGED_FILES}" >> $GITHUB_OUTPUT
-    
-    - name: Create Pull Request
-      if: inputs.create_pr == 'true' && steps.cielo-red.outputs.files_changed != ''
-      id: create-pr
+
+    - name: Setup Network Restrictions
+      if: steps.prepare.outputs.contains_trigger == 'true' && inputs.experimental_allowed_domains != ''
       shell: bash
       run: |
-        git config --global user.name "Cielo Red Bot"
-        git config --global user.email "cielo-red[bot]@users.noreply.github.com"
-        
-        git checkout -b ${{ steps.prepare.outputs.branch_name }}
-        git add -A
-        git commit -m "Cielo Red: ${{ inputs.prompt }}"
-        git push origin ${{ steps.prepare.outputs.branch_name }}
-        
-        PR_URL=$(gh pr create \
-          --title "Cielo Red: Automated changes" \
-          --body "Changes made by Cielo Red based on: ${{ inputs.prompt }}" \
-          --base ${{ inputs.base_branch }} \
-          --head ${{ steps.prepare.outputs.branch_name }})
-        
-        echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+        chmod +x ${GITHUB_ACTION_PATH}/scripts/setup-network-restrictions.sh
+        ${GITHUB_ACTION_PATH}/scripts/setup-network-restrictions.sh
+      env:
+        EXPERIMENTAL_ALLOWED_DOMAINS: ${{ inputs.experimental_allowed_domains }}
+
+
+    - name: Update comment with job link
+      if: steps.prepare.outputs.contains_trigger == 'true' && steps.prepare.outputs.claude_comment_id && always()
+      shell: bash
+      run: |
+        bun run ${GITHUB_ACTION_PATH}/src/entrypoints/update-comment-link.ts
+      env:
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+        CLAUDE_COMMENT_ID: ${{ steps.prepare.outputs.claude_comment_id }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_TOKEN: ${{ steps.prepare.outputs.GITHUB_TOKEN }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        TRIGGER_COMMENT_ID: ${{ github.event.comment.id }}
+        CLAUDE_BRANCH: ${{ steps.prepare.outputs.CLAUDE_BRANCH }}
+        IS_PR: ${{ github.event.issue.pull_request != null || github.event_name == 'pull_request_review_comment' }}
+        BASE_BRANCH: ${{ steps.prepare.outputs.BASE_BRANCH }}
+        CLAUDE_SUCCESS: ${{ steps.claude-code.outputs.conclusion == 'success' }}
+        OUTPUT_FILE: ${{ steps.claude-code.outputs.execution_file || '' }}
+        TRIGGER_USERNAME: ${{ github.event.comment.user.login || github.event.issue.user.login || github.event.pull_request.user.login || github.event.sender.login || github.triggering_actor || github.actor || '' }}
+        PREPARE_SUCCESS: ${{ steps.prepare.outcome == 'success' }}
+        PREPARE_ERROR: ${{ steps.prepare.outputs.prepare_error || '' }}
+        USE_STICKY_COMMENT: ${{ inputs.use_sticky_comment }}
+        USE_COMMIT_SIGNING: ${{ inputs.use_commit_signing }}
+        TRACK_PROGRESS: ${{ inputs.track_progress }}
+
+    - name: Display AI Code Report
+      if: steps.prepare.outputs.contains_trigger == 'true' && steps.claude-code.outputs.execution_file != ''
+      shell: bash
+      run: |
+        # Try to format the turns, but if it fails, dump the raw JSON
+        if bun run ${{ github.action_path }}/src/entrypoints/format-turns.ts "${{ steps.claude-code.outputs.execution_file }}" >> $GITHUB_STEP_SUMMARY 2>/dev/null; then
+          echo "Successfully formatted AI Code report"
+        else
+          echo "## AI Code Report (Raw Output)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Failed to format output (please report). Here's the raw JSON:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          cat "${{ steps.claude-code.outputs.execution_file }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Revoke app token
+      if: always() && inputs.github_token == '' && steps.prepare.outputs.skipped_due_to_workflow_validation_mismatch != 'true'
+      shell: bash
+      run: |
+        curl -L \
+          -X DELETE \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ steps.prepare.outputs.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          ${GITHUB_API_URL:-https://api.github.com}/installation/token
