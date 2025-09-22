@@ -4,6 +4,18 @@ Stop context-switching between roles. Stop waiting for code reviews. Stop managi
 
 **Cielo Red is your complete AI development team** - from project management to deployment, all working autonomously in your GitHub workflows.
 
+---
+
+## 🚀 Ready to 10x Your Team Right Now?
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/cielo-red/agent/main/install.sh | bash
+```
+
+**30 seconds to install. 10x productivity forever.** [↓ Skip to install instructions](#get-started-in-30-seconds)
+
+---
+
 ## Why Settle for One AI When You Can Have a Whole Team?
 
 **Traditional approach:** One AI assistant doing everything poorly  
@@ -92,26 +104,29 @@ jobs:
 - **100% test coverage** (QA agent writes comprehensive tests automatically)
 - **Perfect documentation** (technical writer keeps everything updated)
 
-## Get Started in 2 Minutes
+## Get Started in 30 Seconds
 
-### Option 1: The Full Team Experience
+### The One-Liner That Changes Everything
 ```bash
-# Add this workflow and watch your productivity explode
-curl -o .github/workflows/team.yml https://raw.githubusercontent.com/cielo-red/agent/main/.github/workflows/team.yml
+# Install the full AI development team
+curl -fsSL https://raw.githubusercontent.com/cielo-red/agent/main/install.sh | bash
+
+# Or just the basic workflow
+curl -fsSL https://raw.githubusercontent.com/cielo-red/agent/main/install.sh | bash -s -- --basic
 ```
 
-### Option 2: Start Small
+That's it. The installer:
+- ✅ Sets up workflows automatically
+- ✅ Configures authentication (with GitHub CLI)
+- ✅ Creates agent directory structure
+- ✅ Guides you through next steps
+
+### Manual Setup (If You Prefer)
 ```yaml
-# Just add this to any workflow
+# Add this to .github/workflows/cielo.yml
 - uses: cielo-red/agent@v1
   with:
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-```
-
-### Authentication
-```bash
-# Get your API key: https://console.anthropic.com/
-gh secret set ANTHROPIC_API_KEY --body "your-api-key"
 ```
 
 ## Why Every Smart Team Is Making This Switch
