@@ -14,6 +14,31 @@ curl -fsSL https://raw.githubusercontent.com/cielo-red/agent/main/install.sh | b
 
 **30 seconds to install. 10x productivity forever.** [↓ Skip to install instructions](#get-started-in-30-seconds)
 
+💡 **Works with your existing plan** - Corporate Anthropic accounts, Claude Pro/Team subscriptions, or pay-per-use API
+
+## What's Missing? All the Stuff You Hate
+
+### 🚫 No Sign-Ups or Account Creation
+**Zero friction onboarding.** Uses your existing GitHub account and repository permissions. No forms to fill out, no email verification, no password to remember. If you can push code, you can use Cielo Red. Authentication flows through GitHub's existing systems you already trust.
+
+### 💳 No Credit Cards or New Subscriptions  
+**Zero additional billing.** Works with your existing Anthropic API key or Claude subscription. Whether you're on Claude Pro, Team, or using corporate Anthropic accounts - just plug in what you already have. No surprise charges, no usage meters to monitor, no procurement headaches.
+
+### 📞 No Sales Calls or "Book a Demo"
+**Zero sales pressure.** Install with one curl command and start using immediately. No qualifying questions, no "let's schedule a call," no feature demos you'll forget. The installer is the demo. The code is the documentation. Try it now, not next week after a meeting.
+
+### 🎭 No Vendor Demos or Proof-of-Concepts
+**Zero evaluation theater.** It's open source - read the code yourself instead of watching someone click through slides. Fork it, modify it, audit it. The source code on GitHub is more honest than any sales presentation could ever be.
+
+### 🔒 No Vendor Lock-In or Proprietary Formats
+**Zero switching costs.** Built on standard GitHub Actions that you can remove, modify, or replace anytime. Your workflows remain yours. Your prompts are plain markdown files. Your data never leaves your repository. Exit strategy is `git rm` and you're done.
+
+### 🕵️ No Data Collection or External Services
+**Zero privacy concerns.** Runs entirely in your GitHub Actions environment using your own compute and API keys. We never see your code, issues, or conversations. No analytics dashboards tracking your usage, no "telemetry" phone-home features.
+
+### 📚 No Learning Curve or Training Required
+**Zero onboarding overhead.** Comment `@cielo fix this bug` just like you would mention any teammate. No special syntax, no custom commands, no configuration files to learn. If you can write a GitHub comment, you can manage an AI development team.
+
 ---
 
 ## Why Settle for One AI When You Can Have a Whole Team?
