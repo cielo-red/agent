@@ -31,25 +31,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          if [ -n "${{ github.event.inputs.task }}" ]; then
-            PROMPT="$PROMPT
-
-            Task to implement: ${{ github.event.inputs.task }}"
-          fi
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Project Manager
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue create:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh workflow run:*),Bash(gh workflow list:*)"'
 
   developer:
@@ -67,20 +53,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Developer Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   architect:
@@ -98,20 +75,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Architect Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   security:
@@ -129,20 +97,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Security Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   qa:
@@ -160,20 +119,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run QA Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   devops:
@@ -191,20 +141,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run DevOps Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   performance:
@@ -222,20 +163,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Performance Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   frontend:
@@ -253,20 +185,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Frontend Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   backend:
@@ -284,20 +207,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Backend Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
   lead:
@@ -315,18 +229,9 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read Agent Prompt
-        id: read-prompt
-        run: |
-          PROMPT=$(cat .cielo/agents/${{ github.job }}.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Run Tech Lead Review
-        uses: anthropics/claude-code-action@v1
+        uses: cielo-red/agent@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: ${{ steps.read-prompt.outputs.prompt }}
           claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
